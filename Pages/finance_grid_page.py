@@ -1,6 +1,6 @@
 from time import sleep
 
-from selenium.common import NoSuchElementException
+from selenium.common import NoSuchElementException, StaleElementReferenceException
 from selenium.webdriver import Keys, ActionChains
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -24,6 +24,10 @@ class FinanceGridPage:
     COLUMN_HEADER = (By.XPATH, "//div[@role='columnheader']")
     FILTERED_ROWS = (By.XPATH, "//div[contains(@class, 'ag-row')]")
     TABLE_CONTAINER = (By.CSS_SELECTOR, ".ag-center-cols-viewport")
+
+    # Columns that show their value inside an animated "value change" span.
+    # Note: on the live demo the P&L column id is literally "p&amp;l".
+    VALUE_CHANGE_COLUMNS = ("p&amp;l", "totalValue")
 
 
     def wait_for_element_visibility(self, locator, timeout=2):
@@ -138,7 +142,7 @@ class FinanceGridPage:
     # Assignment 3 ******************************************************************
     def get_cell_value(self, row_index, column_id):
         try:
-            if column_id in ["0", "1"]:
+            if column_id in self.VALUE_CHANGE_COLUMNS:
                 cell_value = self.wait_for_cell_presence(
                     (By.XPATH, f".//div[@role='row' and @row-index='{row_index}']//div[@role='gridcell' and @col-id='{column_id}']//span[@class='ag-value-change-value']"),
                     timeout=2
@@ -162,39 +166,57 @@ class FinanceGridPage:
         except ValueError:
             return False
 
+    def _get_cell_value_with_retry(self, row_index, column_id, attempts=3):
+        """Read a cell, retrying if a live price update re-renders it mid-read."""
+        for attempt in range(attempts):
+            try:
+                return self.get_cell_value(row_index, column_id)
+            except StaleElementReferenceException:
+                if attempt == attempts - 1:
+                    raise
+
     def is_all_cells_valid(self, numeric_columns):
-        all_cells_valid = True
-        max_attempts = 0
+        """Check that the rendered cells in each column are numeric.
+
+        Returns (all_valid, message). A column that can't be read, or where no
+        cells were checked at all, counts as a failure, so the test can't pass
+        without actually validating values.
+        """
+        problems = []
 
         # Locate all rows in the grid
         rows = self.wait_for_element_presence(self.ROW_LOCATOR)
 
         # Loop over each column and validate numeric cells
         for column_id, column_name in numeric_columns.items():
-            max_attempts = 0
+            checked = 0
+            column_failed = False
             # Iterate over each row to find the cell in the current column
             for row in rows[1:]:  # Skip the header row
-                max_attempts += 1
-                if max_attempts > 100:  # Safety limit to prevent infinite loops
-                    print(f"Reached max attempts limit for column '{column_name}'. Stopping iteration.")
+                if checked >= 100:  # Safety limit per column
                     break
                 try:
                     row_index = row.get_attribute('row-index')
                     if row_index is None:
                         continue
-                    cell_value = self.get_cell_value(row_index, column_id)
-                    # Check if the cell's text is numeric
-                    if not self.is_numeric(cell_value):
-                        print(f"Non-numeric value found in column '{column_name}': {cell_value}")
-                        all_cells_valid = False
-                except NoSuchElementException:
-                    print(f"Element not found for column '{column_id}' at row-index '{row_index}'. Stopping column validation.")
-                    break
+                    cell_value = self._get_cell_value_with_retry(row_index, column_id)
                 except Exception as e:
-                    print(f"Unexpected error in column '{column_name}': {str(e)}")
+                    problems.append(f"'{column_name}' (col-id '{column_id}'): could not read cells "
+                                    f"({type(e).__name__})")
+                    column_failed = True
                     break
+                checked += 1
+                # Check if the cell's text is numeric
+                if not self.is_numeric(cell_value):
+                    problems.append(f"'{column_name}' row {row_index}: non-numeric value '{cell_value}'")
 
-        return all_cells_valid
+            if checked == 0 and not column_failed:
+                problems.append(f"'{column_name}' (col-id '{column_id}'): no cells were checked")
+            print(f"Column '{column_name}': {checked} cells checked")
+
+        if problems:
+            return False, "Numeric validation failed:\n" + "\n".join(problems)
+        return True, None
 
     # Assignment 4 *****************************************************************
     def apply_filter_and_count_rows(self, instrument_type):
@@ -217,6 +239,7 @@ class FinanceGridPage:
         return len(filtered_rows)
 
     def search_and_filter(self, instrument_filters):
+        """Apply each instrument filter in turn; returns {instrument: visible row count}."""
         row_counts = {}
         for instrument in instrument_filters:
             row_count = self.apply_filter_and_count_rows(instrument)

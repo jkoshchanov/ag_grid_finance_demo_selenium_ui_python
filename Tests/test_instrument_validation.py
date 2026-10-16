@@ -1,6 +1,5 @@
-#TODO Assignment 2. Instrument Column Validation:
-# Ensure that the cells in the "Instrument" column contain one of the following
-# values: Bond | ETF | Crypto | Stock
+# Instrument column validation: every cell in the "Instrument" column must be
+# one of: Bond | ETF | Crypto | Stock
 
 import unittest
 from selenium import webdriver

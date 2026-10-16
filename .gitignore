@@ -1,0 +1,15 @@
+# Python
+__pycache__/
+*.py[cod]
+
+# Virtual environments
+.venv/
+venv/
+
+# IDE and OS files
+.idea/
+.vscode/
+.DS_Store
+
+# Generated test reports (created by run_tests_for_html_report.py)
+reports/

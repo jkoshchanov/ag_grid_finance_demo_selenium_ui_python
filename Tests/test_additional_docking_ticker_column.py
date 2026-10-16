@@ -1,13 +1,11 @@
-#TODO Assignment 5. Additional Test:
-# Identify and implement at least two more tests that you believe are important to verify for this grid.
-# Be prepared to explain your reasoning for choosing these tests.
-# For instance: drag the Ticker column after Instrument column and verify undocking/docking is successful
+# Column docking: drag the Ticker column after the Instrument column and verify
+# the columns swapped positions.
 
 import unittest
 from selenium import webdriver
 from Pages.finance_grid_page import FinanceGridPage
 
-class TestSearchAndFilter(unittest.TestCase):
+class TestColumnDocking(unittest.TestCase):
 
     def setUp(self):
         self.driver = webdriver.Chrome()

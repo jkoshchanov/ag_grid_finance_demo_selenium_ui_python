@@ -1,8 +1,6 @@
-*** Please note that this project uses Python with Selenium framework and runs tests locally in the terminal to verify functionality and generate HTML reports.
-
 # AG_Grid_Finance_Demo
 
-Test automation suite for the AG-Grid Finance demo page. This project verifies core functionality and data integrity of the finance grid UI component.
+Test automation suite for the AG-Grid Finance demo page, built with Python, Selenium and the Page Object Model. It verifies core functionality and data integrity of the finance grid UI component, runs locally from the terminal, and generates HTML reports.
 
 **Live Demo:** https://www.ag-grid.com/example-finance/
 
@@ -29,7 +27,7 @@ All tests are implemented using Python 3.9+ and Selenium WebDriver, with automat
 ## Requirements
 
 ### Test Coverage
-Your test suite verifies the following functionalities in Finance demo grid:
+This suite verifies the following functionality of the Finance demo grid:
 
 1. **Sorting Functionality**
    - Verify that the grid can be sorted by the "Ticker" column in descending order
@@ -46,14 +44,14 @@ Your test suite verifies the following functionalities in Finance demo grid:
      - P&L
      - Total Value
      - Quantity
-     - Price
+   - The check fails if a column can't be read or no cells were checked, so a change to the page can't make it pass silently
+   - (The demo no longer has a Price column, so Price is not checked)
 
 4. **Additional Tests**
    - **Column Docking/Positioning:** Verify the grid allows dragging and repositioning columns
-   - **Filtering:** Test that the instrument filter functionality correctly filters grid rows
+   - **Filtering:** Filter the Instrument column by Bond, Crypto, ETF and Stock and check that each filter returns rows
 
 5. **Test Strategy**
-   - Run tests on every commit via CI/CD pipeline
    - Generate HTML reports for regression tracking
    - Use explicit waits with timeouts to handle dynamic content
    - Handle stale element references gracefully with retries
@@ -63,20 +61,19 @@ Your test suite verifies the following functionalities in Finance demo grid:
 ```
 AG_Grid_Finance_Demo/
 ├── README.md                                    # This file
+├── requirements.txt                            # Python dependencies
 ├── run_tests_for_html_report.py                # Main test runner
 ├── Pages/
 │   ├── __init__.py
 │   └── finance_grid_page.py                    # Page Object Model
 ├── Tests/
 │   ├── __init__.py
-│   ├── test_ticker_sorting.py                  # Assignment 1: Sorting
-│   ├── test_instrument_validation.py           # Assignment 2: Instrument validation
-│   ├── test_other_columns_validation.py        # Assignment 3: Numeric columns
-│   ├── test_additional_docking_ticker_column.py# Assignment 4a: Column docking
-│   └── test_additional_filtering_instrument_column.py  # Assignment 4b: Filtering
-├── reports/                                    # Generated HTML test reports
-│   └── Test_Report_*.html
-└── .venv/                                      # Python virtual environment
+│   ├── test_ticker_sorting.py                  # Sorting
+│   ├── test_instrument_validation.py           # Instrument validation
+│   ├── test_other_columns_validation.py        # Numeric columns
+│   ├── test_additional_docking_ticker_column.py# Column docking
+│   └── test_additional_filtering_instrument_column.py  # Filtering
+└── reports/                                    # HTML reports (generated, not committed)
 
 ```
 
@@ -88,9 +85,10 @@ AG_Grid_Finance_Demo/
 - Google Chrome browser
 - Git (optional, for version control)
 
-### Step 1: Clone or Navigate to Project
+### Step 1: Clone the Project
 ```bash
-cd /Users/jasurkoshchanov/test_automation/AG_Grid_Finance_Demo
+git clone https://github.com/jkoshchanov/ag_grid_finance_demo_selenium_ui_python.git
+cd ag_grid_finance_demo_selenium_ui_python
 ```
 
 ### Step 2: Create Virtual Environment
@@ -112,7 +110,7 @@ source .venv/bin/activate
 ### Step 4: Install Dependencies
 ```bash
 pip install --upgrade pip
-pip install selenium html-testRunner
+pip install -r requirements.txt
 ```
 
 ### Step 5: Verify Installation
@@ -134,7 +132,7 @@ python run_tests_for_html_report.py
 This command:
 - Discovers all tests in the `Tests/` directory
 - Executes tests sequentially
-- Generates individual HTML reports in the `reports/` directory
+- Generates individual HTML reports in the `reports/` directory (created automatically; reports are not committed to the repo)
 - Displays results in the terminal
 
 ### Run Individual Test File
@@ -157,9 +155,9 @@ python -m unittest discover -s Tests -p "test_*.py" -v
 |------|------|---------|--------|
 | Sort Ticker Descending | `test_ticker_sorting.py` | Verify grid sorting by ticker | ✅ Passing |
 | Instrument Validation | `test_instrument_validation.py` | Validate instrument column values | ✅ Passing |
-| Numeric Columns | `test_other_columns_validation.py` | Verify numeric data in P&L, Total Value, Quantity, Price | ✅ Passing |
+| Numeric Columns | `test_other_columns_validation.py` | Verify numeric data in P&L, Total Value, Quantity | ✅ Passing |
 | Column Docking | `test_additional_docking_ticker_column.py` | Test column repositioning | ✅ Passing |
-| Search & Filter | `test_additional_filtering_instrument_column.py` | Verify filter functionality | ✅ Passing |
+| Search & Filter | `test_additional_filtering_instrument_column.py` | Verify each instrument filter returns rows | ✅ Passing |
 
 ## Test Reports
 
@@ -193,7 +191,7 @@ python3 run_tests_for_html_report.py
 **Solution:** Ensure virtual environment is activated and packages are installed
 ```bash
 source .venv/bin/activate
-pip install selenium html-testRunner
+pip install -r requirements.txt
 ```
 
 ### Issue: Tests hang or timeout
@@ -223,7 +221,7 @@ The `Pages/finance_grid_page.py` file implements:
 
 ### Test Data
 - **Instrument values:** Bond, ETF, Crypto, Stock
-- **Numeric columns:** P&L, Total Value, Quantity, Price
+- **Numeric columns:** P&L, Total Value, Quantity
 - **Grid rows:** Approximately 50+ rows (scrollable)
 
 ### Waits and Timeouts

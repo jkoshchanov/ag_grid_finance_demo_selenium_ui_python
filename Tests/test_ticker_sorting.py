@@ -1,6 +1,5 @@
-#TODO Assignment 1. Create an automated end-to-end test suite for the "Finance" demo grid available at: https://www.ag-grid.com/example-finance/
-# Your test suite should verify the Sorting Functionality
-# Verify that the grid can be sorted by the "Ticker" column
+# Sorting: verify the Finance demo grid (https://www.ag-grid.com/example-finance/)
+# can be sorted by the "Ticker" column in descending order.
 
 import unittest
 from selenium import webdriver

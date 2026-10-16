@@ -1,8 +1,5 @@
-#TODO Assignment 4. Additional Test:
-# Identify and implement at least two more tests that you believe are important to verify for this grid.
-# Be prepared to explain your reasoning for choosing these tests.
-# For instance: filter Instrument column by Bond, Crypto, ETF, Stock
-# and return the number of rows for each filter in an array or list
+# Instrument filter: filter the Instrument column by Bond, Crypto, ETF and Stock
+# and check that each filter returns rows.
 
 import unittest
 from selenium import webdriver
@@ -19,7 +16,10 @@ class TestSearchAndFilter(unittest.TestCase):
         self.page = FinanceGridPage(self.driver)
 
     def test_search_and_filter(self):
-       self.page.search_and_filter(instrument_filters)
+        row_counts = self.page.search_and_filter(instrument_filters)
+        for instrument in instrument_filters:
+            self.assertGreater(row_counts.get(instrument, 0), 0,
+                               msg=f"Filtering by '{instrument}' returned no rows")
 
     def tearDown(self):
         # Close the browser

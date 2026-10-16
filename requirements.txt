@@ -1,0 +1,2 @@
+selenium>=4.36.0
+html-testRunner>=1.2.1
