@@ -1,15 +1,16 @@
-#TODO Assignment 3. Numeric Columns Validation:
-# Confirm that the cells in the following columns contain numeric
-# values: P&L | Total Value | Quantity | Price
+# Numeric column validation: every cell in the P&L, Total Value and Quantity
+# columns must be numeric.
 
 import unittest
 from selenium import webdriver
 from Pages.finance_grid_page import FinanceGridPage
 
-numeric_columns = {"0": 'P&L',
-                   "1": 'Total Value',
-                   "quantity": "Quantity",
-                   "purchasePrice": "Price"}
+# Keys are the grid's col-id values (the live demo's P&L id is literally "p&amp;l").
+# The demo no longer has a Price column: it now shows Ticker, Timeline, Instrument,
+# P&L, Total Value and Quantity, so Price is not checked.
+numeric_columns = {"p&amp;l": "P&L",
+                   "totalValue": "Total Value",
+                   "quantity": "Quantity"}
 
 class TestNumericColumnValidation(unittest.TestCase):
 
@@ -20,7 +21,8 @@ class TestNumericColumnValidation(unittest.TestCase):
         self.page = FinanceGridPage(self.driver)
 
     def test_validate_numeric_columns(self):
-       self.assertTrue(self.page.is_all_cells_valid(numeric_columns))
+        all_valid, msg = self.page.is_all_cells_valid(numeric_columns)
+        self.assertTrue(all_valid, msg=msg)
 
     def tearDown(self):
         # Close the browser
